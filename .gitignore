@@ -1,0 +1,10 @@
+.vscode/
+
+# Downloaded datasets
+/data/FashionMNIST/
+/data/cifar-10-batches-py/
+/data/cifar-10-python.tar.gz
+
+# Python bytecode cache
+__pycache__/
+*.py[cod]
