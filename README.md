@@ -7,7 +7,8 @@
 - 已完成 Fashion-MNIST 下载脚本及本地数据读取。
 - 已实现 Fashion-MNIST 十分类 softmax 回归，对应中文教材 3.7 节的简洁实现。
 - 支持 CSV 指标保存、TensorBoard 和 WandB 实验记录、模型参数与预测样例保存。
-- 多层感知机和卷积网络目录已预留，具体实现随学习逐步增加。
+- 已实现多层感知机训练脚本，支持激活函数、参数初始化选择和可配置训练参数。
+- 卷积网络目录已预留，具体实现随学习逐步增加。
 
 本仓库独立于 CIFAR-10 项目；不自动复制其 baseline 或延续其阶段迁移计划。
 
@@ -29,6 +30,7 @@ cd /home/hao/research/00-getting-start/d2l-learn
 ```text
 d2l-learn/
 ├── README.md
+├── 实验记录.md
 ├── .gitignore
 ├── data/
 │   ├── code/download_fashion_mnist.py
@@ -37,10 +39,10 @@ d2l-learn/
 │   ├── code/train.py
 │   ├── config/softmax.toml
 │   └── output/                       # 运行结果，不提交
-├── multilayer-perceptrons/
-│   ├── code/
-│   ├── config/
-│   └── output/
+├── mlp/
+│   ├── code/train.py
+│   ├── config/mlp.toml
+│   └── output/                       # 运行结果，不提交
 └── conv/
     ├── basics/
     ├── lenet/
@@ -88,11 +90,37 @@ python linear-softmax/code/train.py --logger wandb --wandb-mode offline
 
 # 单轮检查，使用 CPU，不启用日志工具
 python linear-softmax/code/train.py --epochs 1 --device cpu --logger none
+
+# 覆盖学习率和批量大小
+python linear-softmax/code/train.py --learning-rate 0.03 --batch-size 64 --logger none
 ```
 
-支持 `--config` 指定其他 TOML 文件、`--epochs` 和 `--device` 覆盖对应配置。`--config` 的相对路径按终端当前目录解释；TOML 内的数据与输出相对路径按仓库根目录解释。
+支持 `--config` 指定其他 TOML 文件；`--epochs`、`--learning-rate`、`--batch-size` 和 `--device` 可覆盖对应配置。命令行参数只影响本次运行，不会修改 TOML 文件。`--config` 的相对路径按终端当前目录解释；TOML 内的数据与输出相对路径按仓库根目录解释。
 
 `--wandb-project` 默认是 `d2l-learn`；`--wandb-mode` 可选 `online` 或 `offline`，仅在启用 WandB 时生效。
+
+## 训练多层感知机
+
+MLP 配置位于 `mlp/config/mlp.toml`。默认隐藏层为 `[256]`，激活函数为 ReLU，初始化为标准差 0.01 的正态分布；训练参数默认 batch size 256、learning rate 0.3、20 epochs。可在命令行或 TOML 配置中调整训练参数、隐藏层宽度、激活函数和初始化方法。脚本默认从 `mlp/config/mlp.toml` 读取配置，数据集仍使用仓库根目录下的 `data/`。
+
+```bash
+# 默认配置，WandB 在线记录
+python mlp/code/train.py
+
+# 指定激活函数
+python mlp/code/train.py --activation relu
+python mlp/code/train.py --activation sigmoid
+python mlp/code/train.py --activation tanh
+python mlp/code/train.py --activation leaky_relu
+
+# 设置隐藏层结构和 Xavier uniform 初始化
+python mlp/code/train.py --hidden-sizes 256 256 256 256 256 --initialization xavier
+
+# 覆盖训练参数
+python mlp/code/train.py --batch-size 128 --learning-rate 0.03 --epochs 50
+```
+
+MLP 每次运行会在 `mlp/output/` 下保存指标、运行配置、模型参数和预测样例。实验参数与运行结果摘要见根目录的[实验记录](./实验记录.md)。
 
 ## 查看实验
 
@@ -128,5 +156,4 @@ WandB 在线运行时，终端会输出本次实验的网页链接；点击即�
 ## 参考资料
 
 - [《动手学深度学习》中文版](https://zh.d2l.ai/)
-- [3.7 softmax 回归的简洁实现](https://zh.d2l.ai/chapter_linear-networks/softmax-regression-concise.html)
 - [PyTorch 官方教程](https://docs.pytorch.org/tutorials/)

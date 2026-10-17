@@ -1,9 +1,14 @@
-"""Fashion-MNIST softmax 回归：对应 d2l 中文版 3.7 节。
+"""Fashion-MNIST softmax 回归: 对应 d2l 中文版 3.7 节。
 
-在仓库根目录运行：python linear-softmax/code/train.py
-可用 --epochs 1 做短程验证；--device cpu 强制使用 CPU。
-默认使用 WandB；--logger 可选 wandb、tensorboard、both、none。
---wandb-mode offline 让 WandB 只保存本地日志。
+可修改参数:
+超参数 (默认值: --epochs 10、--batch-size 256、--learning-rate 0.1):
+--epochs、--batch-size 为正整数; --learning-rate 为有限正数。
+系统配置:
+--config 为 TOML 文件路径;
+--device 可选 auto、cpu、cuda;
+记录配置:
+--logger 可选 wandb、tensorboard、both、none。
+--wandb-mode 可选 online、offline; --wandb-project 为项目名称。
 不自动下载数据。配置中的相对路径以仓库根目录为基准。
 """
 
@@ -60,10 +65,12 @@ def run_epoch(model, loader, loss_fn, device, optimizer=None):
 
 def main():
 
-    # 解析命令行参数；TOML 文件由后面的 tomllib 读取。
+    # 解析命令行参数; TOML 文件由后面的 tomllib 读取。
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--epochs", type=int, help="覆盖配置中的训练轮数")
+    parser.add_argument("--learning-rate", type=float, help="覆盖配置中的学习率")
+    parser.add_argument("--batch-size", type=int, help="覆盖配置中的批量大小")
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--logger", choices=["wandb", "tensorboard", "both", "none"],
                         default="wandb", help="选择实验记录工具，默认 wandb")
@@ -85,6 +92,10 @@ def main():
         config = tomllib.load(file)
     if args.epochs is not None:
         config["epochs"] = args.epochs
+    if args.learning_rate is not None:
+        config["learning_rate"] = args.learning_rate
+    if args.batch_size is not None:
+        config["batch_size"] = args.batch_size
     if args.device is not None:
         config["device"] = args.device
 
@@ -110,7 +121,7 @@ def main():
     device = torch.device(device_name)
     data_root = (REPO_ROOT / config["data_root"]).resolve()
 
-    # 读取本地 Fashion-MNIST 数据集；download=False，不执行下载。
+    # 读取本地 Fashion-MNIST 数据集; download=False，不执行下载。
     train_data = datasets.FashionMNIST(
         data_root, train=True, transform=transforms.ToTensor(), download=False
     )
@@ -152,7 +163,7 @@ def main():
                 "classes": train_data.classes}
     (run_dir / "run.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # 每次实验使用独立日志目录；正常结束或异常退出时自动关闭记录器。
+    # 每次实验使用独立日志目录; 正常结束或异常退出时自动关闭记录器。
     with ExitStack() as stack:
         tb_writer = None
         wb_run = None
@@ -203,8 +214,8 @@ def main():
                     epoch, train_loss, train_acc, test_loss, test_acc, total_training_time, delta_time,
                 ])
                 file.flush()
-                # train 为训练过程中的统计；test 为本轮训练结束后的评估。
-                # 将指标写入本次启用的记录工具；CSV 始终保留。
+                # train 为训练过程中的统计; test 为本轮训练结束后的评估。
+                # 将指标写入本次启用的记录工具; CSV 始终保留。
                 metrics = {
                     "accuracy/train": train_acc, "accuracy/test": test_acc,
                     "loss/train": train_loss, "loss/test": test_loss,
@@ -219,7 +230,7 @@ def main():
                     wb_run.log({"epoch": epoch, **metrics}, step=epoch)
 
         torch.save(model.state_dict(), run_dir / "model.pt")
-        # 预测时才把 logits 转成概率；每行十个类别的概率之和为 1。
+        # 预测时才把 logits 转成概率; 每行十个类别的概率之和为 1。
         model.eval()
         with torch.no_grad():
             images, labels = next(iter(test_loader))

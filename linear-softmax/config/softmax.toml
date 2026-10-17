@@ -1,4 +1,4 @@
-# 对应 d2l 3.7 节的简洁实现；使用本地 Fashion-MNIST。
+# 对应 d2l 3.7 节的简洁实现; 使用本地 Fashion-MNIST。
 # 所有数据/输出相对路径以仓库根目录为基准，与终端当前目录无关。
 data_root = "data"
 output_root = "linear-softmax/output"
@@ -8,8 +8,8 @@ learning_rate = 0.1
 epochs = 10
 seed = 42
 
-# auto 优先 CUDA，否则 CPU；也可明确填 "cpu" 或 "cuda"。
+# auto 优先 CUDA，否则 CPU; 也可明确填 "cpu" 或 "cuda"。
 device = "auto"
-# 先使用单进程加载，便于逐步调试；之后可按机器性能调整。
+# 先使用单进程加载，便于逐步调试; 之后可按机器性能调整。
 num_workers = 0
 num_threads = 4

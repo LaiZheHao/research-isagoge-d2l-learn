@@ -1,0 +1,29 @@
+# MLP 基础结构依据 d2l 4.3 节; 激活函数与初始化选项用于本项目实验。
+# 相对路径以仓库根目录为基准; 继续复用已下载的 Fashion-MNIST。
+data_root = "data"
+output_root = "mlp/output"
+
+# 以下为训练参数默认值; 可通过命令行选项覆盖。
+batch_size = 256
+learning_rate = 0.3
+epochs = 20
+
+seed = 42
+device = "auto"
+num_workers = 0
+num_threads = 4
+
+# [256] 对应 784 -> 256 -> 10; [256, 128] 对应两个隐藏层。
+hidden_sizes = [256]
+# relu / sigmoid / tanh / leaky_relu (负半轴斜率固定 0.01)。
+# 所有隐藏层使用同一激活; 输出层不加激活，直接返回 logits。
+activation = "relu"
+
+# normal: N(0, 0.01^2); xavier: Xavier uniform。
+initialization = "normal"
+
+# CLI 示例 (从仓库根目录运行):
+# python mlp/code/train.py --activation tanh
+# python mlp/code/train.py --hidden-sizes 256 256 256 256 256 --initialization xavier
+# python mlp/code/train.py --batch-size 128 --learning-rate 0.03 --epochs 50
+# --logger wandb / tensorboard / both / none; 默认值为 wandb。
