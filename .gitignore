@@ -11,3 +11,6 @@ __pycache__/
 
 # Training outputs
 output/
+
+# Generated polynomial dataset
+/data/polynomial/
