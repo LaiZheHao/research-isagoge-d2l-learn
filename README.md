@@ -11,7 +11,7 @@
 - 已实现 d2l 4.4 多项式拟合，数据生成与训练分离，支持模型阶数选择及 loss 记录。
 - 卷积网络目录已预留，具体实现随学习逐步增加。
 
-CIFAR-10 学习代码已整理到 `cifar10/`，保留简单 CNN 与 CIFAR 版 ResNet18。旧 week1 GitHub 仓库已由用户确认删除；E 盘 `.codex` 中的 baseline 保留为历史参考。
+CIFAR-10 学习代码已整理到 `cifar10/`，当前支持简单 CNN、ResNet-18、NiN 和 DenseNet-121。详细使用说明见 [cifar10/README.md](cifar10/README.md)。旧 week1 GitHub 仓库已由用户确认删除；E 盘 `.codex` 中的 baseline 保留为历史参考。
 
 ## 本机环境
 
@@ -61,7 +61,7 @@ d2l-learn/
     └── resnet/
 ```
 
-`conv/` 下每个目录同样包含 `code/`、`config/`、`output/`。`data/code/` 放数据准备代码，数据集在 `data/` 下共享；各模型目录分别保存实现、配置和结果。只维护根 README。Git 不跟踪空目录，因此新克隆的仓库可能没有尚未添加文件的预留目录。
+`conv/` 下每个目录同样包含 `code/`、`config/`、`output/`。`data/code/` 放数据准备代码，数据集在 `data/` 下共享；各模型目录分别保存实现、配置和结果。默认只维护根 README；用户明确要求时可在子目录另建 README。Git 不跟踪空目录，因此新克隆的仓库可能没有尚未添加文件的预留目录。
 
 ## 准备数据
 
@@ -202,13 +202,15 @@ python data/code/download_cifar10.py
 # 以下命令会启动训练
 python cifar10/code/train.py --model cnn
 python cifar10/code/train.py --model resnet18 --logger tensorboard
+python cifar10/code/train.py --model nin --logger none
+python cifar10/code/train.py --model densenet121 --logger none
 ```
 
 支持 `--config`、`--epochs`、`--batch-size`、`--learning-rate`、`--device`，以及与 MLP 相同的 logger、WandB mode/project 参数。使用现有 cv 环境，分层划分依赖 scikit-learn。
 
 训练仅读取本地 `data/cifar-10-batches-py/`。固定种子分层划分 45000/5000，训练使用随机裁剪、翻转和标准化，验证/测试仅标准化。保留 SGD、StepLR 和按验证损失早停; 每轮记录训练/验证指标，结束后用选中的模型评估一次测试集。
 
-始终保存 `run.json`、`split.npz`、`metrics.csv`、`model.pt` (最后一轮)、`best.pt` (验证损失按 min_delta 改善时保存)、`test_metrics.json`、`predictions.json` (最佳模型的样例)。权重均为 state_dict，不提供断点续训; 不生成历史 baseline 的 PNG 图表或混淆矩阵。使用 cuDNN 确定性设置，但未启用全算子严格确定性检查，不声称与历史 baseline 逐位复现。
+始终保存 `run.json`、`split.npz`、`metrics.csv`、`model.pt` (最后一轮)、`best.pt` (验证损失按 min_delta 改善时保存)、`test_metrics.json`、`predictions.json` (最佳模型的样例)。权重均为 state_dict，不提供断点续训; 最终测试同时保存混淆矩阵原始计数 CSV、计数热力图和按真实类别归一化的百分比热力图，不生成历史 baseline 的其他 PNG 图表。使用 cuDNN 确定性设置，但未启用全算子严格确定性检查，不声称与历史 baseline 逐位复现。
 
 本次完成代码适配，借用 baseline 数据做只读加载、划分与前向检查，尚未训练新模型。仓库 data 下的 CIFAR-10 文件尚未准备完整，正式训练前先运行下载脚本。
 

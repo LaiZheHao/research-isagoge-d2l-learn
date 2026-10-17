@@ -1,0 +1,26 @@
+# CIFAR-10 baseline 适配; 配置路径以仓库根目录为基准。
+data_root = "data"
+output_root = "cifar10/output"
+model = "cnn" # cnn / resnet18 / nin / densenet121，不使用预训练权重。
+batch_size = 128
+learning_rate = 0.05
+epochs = 20
+momentum = 0.9
+weight_decay = 0.0005
+# StepLR 与按验证损失早停
+step_size = 5
+gamma = 0.5
+patience = 5
+min_delta = 0.0001
+seed = 42
+device = "auto"
+num_workers = 0
+num_threads = 4
+
+[augmentation]
+# 可分别关闭整套随机增广或单项操作; 关闭后仍会执行张量转换与标准化。
+enabled = true
+random_crop = true
+crop_padding = 4
+horizontal_flip = true
+horizontal_flip_probability = 0.5

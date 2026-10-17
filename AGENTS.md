@@ -19,7 +19,7 @@
 
 ## 文件夹与配置组织
 
-- 只维护仓库根目录的 `README.md`，各子目录不另建 README。
+- 默认只维护仓库根目录的 `README.md`，不在其他文件夹新建 README；用户明确要求时可以例外。
 - `data/code/` 存放数据下载、生成、解压和检查脚本；`data/<数据集目录>/` 存放共享数据。沿用已有实际名称，例如 `FashionMNIST/` 和 `polynomial/`。
 - 各模型或实验目录使用 `code/`、`config/`、`output/`，分别存放实现与训练代码、配置和运行结果。
 - 当前实验目录为 `linear-softmax/`、`mlp/`、`fit/`；多项式实验使用 `fit/`，不恢复旧名 `overfitting/`。
