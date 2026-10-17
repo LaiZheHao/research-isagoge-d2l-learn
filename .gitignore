@@ -8,3 +8,6 @@
 # Python bytecode cache
 __pycache__/
 *.py[cod]
+
+# Training outputs
+output/
