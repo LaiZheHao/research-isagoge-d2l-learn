@@ -8,9 +8,10 @@
 - 已实现 Fashion-MNIST 十分类 softmax 回归，对应中文教材 3.7 节的简洁实现。
 - 支持 CSV 指标保存、TensorBoard 和 WandB 实验记录、模型参数与预测样例保存。
 - 已实现多层感知机训练脚本，支持激活函数、参数初始化选择和可配置训练参数。
+- 已实现 d2l 4.4 多项式拟合，数据生成与训练分离，支持模型阶数选择及 loss 记录。
 - 卷积网络目录已预留，具体实现随学习逐步增加。
 
-本仓库独立于 CIFAR-10 项目；不自动复制其 baseline 或延续其阶段迁移计划。
+CIFAR-10 学习代码已整理到 `cifar10/`，保留简单 CNN 与 CIFAR 版 ResNet18。旧 week1 GitHub 仓库已由用户确认删除；E 盘 `.codex` 中的 baseline 保留为历史参考。
 
 ## 本机环境
 
@@ -33,8 +34,11 @@ d2l-learn/
 ├── 实验记录.md
 ├── .gitignore
 ├── data/
-│   ├── code/download_fashion_mnist.py
-│   └── FashionMNIST/                 # 本地数据，不提交
+│   ├── code/
+│   │   ├── download_fashion_mnist.py
+│   │   └── generate_polynomial.py
+│   ├── FashionMNIST/                 # 本地数据，不提交
+│   └── polynomial/dataset.pt         # 合成数据，不提交
 ├── linear-softmax/
 │   ├── code/train.py
 │   ├── config/softmax.toml
@@ -42,6 +46,10 @@ d2l-learn/
 ├── mlp/
 │   ├── code/train.py
 │   ├── config/mlp.toml
+│   └── output/                       # 运行结果，不提交
+├── fit/
+│   ├── code/train.py
+│   ├── config/polynomial.toml
 │   └── output/                       # 运行结果，不提交
 └── conv/
     ├── basics/
@@ -122,6 +130,35 @@ python mlp/code/train.py --batch-size 128 --learning-rate 0.03 --epochs 50
 
 MLP 每次运行会在 `mlp/output/` 下保存指标、运行配置、模型参数和预测样例。实验参数与运行结果摘要见根目录的[实验记录](./实验记录.md)。
 
+## 训练多项式回归
+
+先在仓库根目录生成数据，再训练：
+
+```bash
+python data/code/generate_polynomial.py
+python fit/code/train.py --i 3
+
+# 指定阶数和主要超参数
+python fit/code/train.py --i 1 --batch-size 10 --lr 0.01 --epochs 100 --logger none
+python fit/code/train.py --i 19 --epochs 1500 --logger both
+
+# 仅使用 TensorBoard
+python fit/code/train.py --i 3 --logger tensorboard
+tensorboard --logdir fit/output --port 6006
+```
+
+配置位于 `fit/config/polynomial.toml`，默认 i=3、batch size=10、lr=0.01、100 epochs。`--i` 是最高次数，允许非负整数，0 表示常数模型，特征数为 i+1。`--lr` 也可写作 `--learning-rate`。固定使用 CPU 和 seed=42。
+
+生成脚本将训练集和测试集各 100 个样本保存到 `data/polynomial/dataset.pt`，每次运行会覆盖该文件。训练脚本只读取数据，缺失时提示先生成。真实规律为带标准差 0.1 噪声的三次多项式；模型使用阶乘缩放特征和无额外偏置的线性层，以 SGD 最小化 MSE。
+
+`--logger` 支持 wandb（默认）、tensorboard、both、none。fit 未提供分类脚本的 `--config`、`--device`、`--wandb-mode` 或 `--wandb-project` 参数；WandB 项目固定为 `d2l-learn`。需要离线记录时，可在 WSL 使用：
+
+```bash
+WANDB_MODE=offline python fit/code/train.py --i 3
+```
+
+输出目录为 `fit/output/时间-i阶数/`，重名时追加序号。始终保存 `run.json`、`metrics.csv`、最终 `model.pt`，按需生成日志目录；不保存分类预测 JSON。CSV 和日志记录每轮更新后评估的训练/测试 MSE，没有准确率或耗时指标。
+
 ## 查看实验
 
 TensorBoard 需要本次或以往运行启用了 `tensorboard` 或 `both`。在 WSL 终端执行并保持服务运行：
@@ -134,11 +171,13 @@ tensorboard --logdir linear-softmax/output --port 6006
 
 WandB 在线运行时，终端会输出本次实验的网页链接；点击即可查看。离线运行不会立即更新网页，可在联网后使用终端给出的 `wandb sync` 命令同步。
 
-两个工具均记录训练/测试准确率、训练/测试损失、单轮和累计训练耗时。训练准确率是训练过程中各批量的累计统计，测试准确率是在每轮更新结束后计算的；耗时包含训练时的数据加载和计算，不包含测试评估、日志同步与结果保存。
+对于 softmax 和 MLP，两个工具均记录训练/测试准确率、训练/测试损失、单轮和累计训练耗时。训练准确率是训练过程中各批量的累计统计，测试准确率是在每轮更新结束后计算的；耗时包含训练时的数据加载和计算，不包含测试评估、日志同步与结果保存。
 
 ## 输出与版本管理
 
 每次运行创建独立目录，例如 `linear-softmax/output/20261017-1430/`。同一分钟重复运行时追加 `-1`、`-2` 等序号，避免覆盖。
+
+以下表格描述 softmax 和 MLP 的输出；fit 的输出见上节。
 
 | 文件或目录 | 内容 |
 |---|---|
@@ -152,6 +191,26 @@ WandB 在线运行时，终端会输出本次实验的网页链接；点击即�
 当前版本不再生成 `accuracy.png`，也不提供 `--plot-only`。模型权重和预测 JSON 不会由当前代码自动上传到 WandB。
 
 `.gitignore` 已忽略 `.vscode/`、Python 缓存、指定的数据集路径和各级 `output/`。提交时检查变更，仅提交源码、配置和必要文档，不使用强制暂存上传实验日志或数据。日志工具不会替代本地模型与结果备份。
+
+## CIFAR-10
+
+`cifar10/code/train.py` 与 `cifar10/config/cifar10.toml` 是历史 baseline 的简化适配，结果保存在 `cifar10/output/`。历史 baseline 不变，不复制其数据或实验成绩。
+
+```bash
+# 本地没有数据时先准备数据
+python data/code/download_cifar10.py
+# 以下命令会启动训练
+python cifar10/code/train.py --model cnn
+python cifar10/code/train.py --model resnet18 --logger tensorboard
+```
+
+支持 `--config`、`--epochs`、`--batch-size`、`--learning-rate`、`--device`，以及与 MLP 相同的 logger、WandB mode/project 参数。使用现有 cv 环境，分层划分依赖 scikit-learn。
+
+训练仅读取本地 `data/cifar-10-batches-py/`。固定种子分层划分 45000/5000，训练使用随机裁剪、翻转和标准化，验证/测试仅标准化。保留 SGD、StepLR 和按验证损失早停; 每轮记录训练/验证指标，结束后用选中的模型评估一次测试集。
+
+始终保存 `run.json`、`split.npz`、`metrics.csv`、`model.pt` (最后一轮)、`best.pt` (验证损失按 min_delta 改善时保存)、`test_metrics.json`、`predictions.json` (最佳模型的样例)。权重均为 state_dict，不提供断点续训; 不生成历史 baseline 的 PNG 图表或混淆矩阵。使用 cuDNN 确定性设置，但未启用全算子严格确定性检查，不声称与历史 baseline 逐位复现。
+
+本次完成代码适配，借用 baseline 数据做只读加载、划分与前向检查，尚未训练新模型。仓库 data 下的 CIFAR-10 文件尚未准备完整，正式训练前先运行下载脚本。
 
 ## 参考资料
 

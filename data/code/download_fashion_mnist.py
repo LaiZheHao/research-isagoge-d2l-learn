@@ -1,6 +1,7 @@
-"""下载并检查 d2l 基础分类示例使用的 Fashion-MNIST
-在 cv-week1 环境、仓库根目录运行 python data/code/download_fashion_mnist.py
-只在直接运行本文件时下载；导入本模块不会启动下载。
+"""下载并检查 d2l 基础分类示例使用的 Fashion-MNIST。
+
+在 cv 环境、仓库根目录运行 python data/code/download_fashion_mnist.py。
+只在直接运行本文件时下载; 导入本模块不会启动下载。
 """
 
 from pathlib import Path
@@ -8,12 +9,12 @@ from torchvision import datasets, transforms
 
 
 def main():
-    # 数据集根目录：data/。torchvision 会在它下面按数据集类名自动创建子目录FashionMNIST
+    # 数据集根目录: data/。torchvision 会在它下面按数据集类名自动创建子目录 FashionMNIST。
     data = Path(__file__).resolve().parents[1]
     print("准备下载 Fashion-MNIST", flush=True)
 
     # ToTensor 在读取样本时将图片转成 [通道, 高, 宽] 的张量，
-    # 并将像素由 0~255 转为 0~1；不会改写磁盘上的原始数据。
+    # 并将像素由 0~255 转为 0~1; 不会改写磁盘上的原始数据。
     transform = transforms.ToTensor()
 
     train_data = datasets.FashionMNIST(
