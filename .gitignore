@@ -14,3 +14,6 @@ output/
 
 # Generated polynomial dataset
 /data/polynomial/
+
+# Agent information
+AGENTS.md

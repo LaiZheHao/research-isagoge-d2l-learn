@@ -11,3 +11,15 @@ epochs = 100
 # python fit/code/train.py --i 1
 # python fit/code/train.py --i 3 --logger tensorboard
 # python fit/code/train.py --i 19 --epochs 1500 --logger both
+
+# 正则化与特征 Dropout 默认关闭; strength 与 probability 仅在对应开关开启时生效。
+regularization = false
+regularization_strength = 0.001
+dropout = false
+dropout_probability = 0.1
+# 从已生成的训练集中取前 N 个样本，测试集不变。
+train_samples = 100
+
+# python fit/code/train.py --i 4 --train-samples 8 --lr 0.5 --epochs 20000 --regularization --regularization-strength 0.001
+# python fit/code/train.py --i 4 --train-samples 8 --lr 0.5 --epochs 20000 --dropout --dropout-probability 0.01
+# python fit/code/train.py --i 4 --train-samples 8 --lr 0.5 --epochs 20000 --regularization --regularization-strength 0.001 --dropout --dropout-probability 0.01
